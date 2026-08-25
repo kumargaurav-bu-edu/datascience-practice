@@ -1,0 +1,62 @@
+{
+    "quiz_title": "Neural Network Architecture Quiz",
+    "quiz_description": "Based on the Coursera article: '4 Types of Neural Network Architecture'",
+    "questions": [
+      {
+        "id": 1,
+        "question": "Which type of neural network feeds data forward from input to output with no loops or circles?",
+        "choices": {
+          "A": "Recurrent Neural Network",
+          "B": "Feedforward Neural Network",
+          "C": "Convolutional Neural Network",
+          "D": "Generative Adversarial Network"
+        },
+        "answer": "B"
+      },
+      {
+        "id": 2,
+        "question": "Which neural network is best suited for sequential data or time series prediction, utilizing loops to circle data back?",
+        "choices": {
+          "A": "Generative Adversarial Network",
+          "B": "Feedforward Neural Network",
+          "C": "Recurrent Neural Network",
+          "D": "Convolutional Neural Network"
+        },
+        "answer": "C"
+      },
+      {
+        "id": 3,
+        "question": "Convolutional Neural Networks (CNNs) are particularly skilled at which of the following tasks?",
+        "choices": {
+          "A": "Recognizing patterns and images (Computer Vision)",
+          "B": "Translating text from one language to another",
+          "C": "Predicting stock market trends",
+          "D": "Generating 3D models from 2D images"
+        },
+        "answer": "A"
+      },
+      {
+        "id": 4,
+        "question": "What are the two main competing algorithms that make up a Generative Adversarial Network (GAN)?",
+        "choices": {
+          "A": "Input layer and Output layer",
+          "B": "Generator and Discriminator",
+          "C": "Convolutional layer and Pooling layer",
+          "D": "Context layer and Hidden layer"
+        },
+        "answer": "B"
+      },
+      {
+        "id": 5,
+        "question": "According to the article, which neural network architecture uniquely uses shared weights and bias values across nodes?",
+        "choices": {
+          "A": "Recurrent Neural Networks",
+          "B": "Feedforward Neural Networks",
+          "C": "Generative Adversarial Networks",
+          "D": "Convolutional Neural Networks"
+        },
+        "answer": "D"
+      }
+    ]
+  }
+  
