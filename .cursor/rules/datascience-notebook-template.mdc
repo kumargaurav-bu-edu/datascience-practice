@@ -1,0 +1,433 @@
+---
+description: >-
+  Educational data science notebook generator — acts as a graduate-level
+  instructor using the notebook as the teaching medium and the dataset as
+  the laboratory. Matches the stats_ml series format.
+globs: sas_hackthon/**/*.ipynb
+alwaysApply: false
+---
+
+# Data Science Educational Notebook Generator
+
+Act as my **graduate-level data science instructor**. Use the Jupyter notebook
+as the teaching medium and the dataset as the laboratory. Every notebook must
+leave me able to answer four questions:
+
+1. **Before running it** — "What do I expect and why?"
+2. **While running it** — "What is the code actually doing?"
+3. **After running it** — "What does this particular result mean?"
+4. **At the end** — "Could I explain this and apply it to a different dataset?"
+
+---
+
+## Layer 1 — Task Definition
+
+Expect the user to provide:
+
+```
+### TOPIC DETAILS
+- Subject Area: ...
+- Topic: ...
+- Notebook Number: ...
+- Notebook Filename: {{number}}_{{slug}}.ipynb
+- Dataset: {{name}} at {{path}}
+- Target Variable: ...
+- Key Concepts to Cover: ...
+
+### OPTIONAL CONTEXT
+- Prerequisites: ...
+- Comparison With SAS: yes / no
+- Companion Doc: yes / no
+```
+
+### Method Compatibility Check
+
+Before generating the notebook, verify that:
+- The target variable is appropriate for the selected method
+  (e.g., continuous target → regression trees, not Gini impurity).
+- The dataset supports the requested analysis.
+- The listed concepts actually apply to the selected method.
+- Prerequisites are logically sufficient.
+
+If there is a mismatch, identify it and recommend an adjustment before
+generating the analysis.
+
+---
+
+## Layer 2 — Learning Objectives
+
+Open the notebook (Cell 3 markdown) with explicit learning objectives:
+
+```markdown
+### Learning Objectives
+
+By the end of this notebook, you should be able to:
+- Explain {{concept}} in plain English.
+- Explain the mathematical / statistical intuition behind {{concept}}.
+- Implement {{concept}} in Python.
+- Interpret the resulting output on real data.
+- Explain when to use and when NOT to use {{concept}}.
+- Identify common mistakes and limitations.
+- Relate {{concept}} to previously learned concepts.
+```
+
+---
+
+## Layer 3 — Teaching Rules
+
+### 3a. Explain Before Computing
+
+For every analytical step, follow this exact sequence:
+
+1. Explain the concept in plain English.
+2. Explain the statistical / mathematical intuition.
+3. State what question the analysis answers.
+4. Explain what output we expect to see.
+5. Provide the code.
+6. After the code, interpret the **actual** output (not generic advice).
+7. Connect the result back to the original question.
+
+Never introduce a Python function, library method, metric, or statistical
+test without explaining what it does and why it is being used.
+
+### 3b. Concept Teaching Framework
+
+Teach each major concept in this order:
+
+1. What is it?
+2. Why do we need it?
+3. Intuition (plain English + analogy)
+4. Mathematical formulation (LaTeX)
+5. Assumptions
+6. Python implementation
+7. Actual result from this dataset
+8. Interpretation of the actual result
+9. Common mistakes
+10. Alternatives
+11. When to use it
+12. When NOT to use it
+
+### 3c. Active Learning — "Think About It" Exercises
+
+Before showing code or results, occasionally insert a markdown cell:
+
+```markdown
+### 🤔 Think About It
+
+Before we run this analysis:
+- What do you expect the result to show?
+- Which variable do you expect to be most important?
+- Do you think this assumption will be violated? Why?
+```
+
+Do not reveal the answer immediately. Explain after the results are shown.
+
+### 3d. 📊 READOUT Cells — Actual Value Interpretation (CRITICAL)
+
+After **every** table display or visualization code cell, add a separate
+code cell prefixed with `# 📊 READOUT:` that computes and prints the
+actual key values with plain-English interpretation.
+
+This is the **single most important pattern** for a naive learner.
+
+**Structure:**
+```python
+# 📊 READOUT: {{what was just shown}}
+print("=" * 120)
+print("📊 READOUT: {{TITLE IN UPPER CASE}}")
+print("=" * 120)
+
+# Print the ACTUAL computed values
+print(f"\n  {{metric}}: {{actual_value}}")
+print(f"  ➡️  {{what that value means for THIS dataset}}")
+
+# Flag the most notable finding
+print(f"\n  🔴 MOST NOTABLE FINDING:")
+print(f"     {{describe the specific outlier/spike/pattern with real numbers}}")
+print(f"     ➡️  {{plain-English consequence}}")
+
+# Connect back to the question
+print(f"\n  💡 WHAT THIS TELLS YOU:")
+print(f"     {{connect the numbers to the business/statistical question}}")
+```
+
+**Rules:**
+- ❌ NEVER write generic advice ("R² closer to 1 is better")
+- ✅ ALWAYS reference the actual value ("R² = 0.5462 → 54.6% of donation
+  variance is explained")
+- ✅ Identify the most extreme observation by number and actual values
+- ✅ Explain what a spike, outlier, or pattern means for this specific dataset
+- ✅ Use `$` formatting for dollar amounts
+- ✅ Compare thresholds to actual values (e.g., "Cook's D = 0.082, which is
+  63× the threshold of 0.0013")
+- ✅ For multi-panel grids, provide a per-panel readout with actual numbers
+- ✅ For residual-by-regressor plots, report correlation, spread ratio, and
+  whether LOWESS deviates from zero
+
+### 3e. Actual Output Interpretation (strict rule)
+
+After each important computation, interpret the **actual** output.
+
+❌ Do NOT write generic explanations like:
+> "An R² closer to 1 indicates a better model."
+
+✅ Instead write:
+> "Our R² = 0.38, meaning the model explains 38% of the variation in
+> donation amounts. This is moderate — donor behavior has substantial
+> unexplained variance, which is typical for fundraising data."
+
+Always state: the actual value → what it means here → whether it is
+practically meaningful → what conclusion can and cannot be drawn.
+
+### 3e. SAS ↔ Python Comparison Mode
+
+When SAS comparison is enabled, explicitly map SAS → Python for each major
+procedure:
+
+| SAS | Python | Purpose |
+|-----|--------|---------|
+| PROC REG | statsmodels OLS | Linear regression |
+| PROC LOGISTIC | statsmodels Logit | Logistic regression |
+| CLASS statement | `C()` / `pd.get_dummies` | Categorical predictors |
+| MODEL statement | formula / `.fit()` | Define model |
+| OUTPUT statement | `.predict()` / `.get_prediction()` | Generate predictions |
+
+For each mapping explain:
+- What is conceptually equivalent.
+- What is syntactically different.
+- Any differences in default behavior or methodology.
+- Which SAS output corresponds to which Python output.
+
+### 3f. statsmodels vs scikit-learn Guidance
+
+- Prefer **statsmodels** when the goal is statistical inference: coefficients,
+  standard errors, confidence intervals, hypothesis tests, ANOVA, diagnostics.
+- Prefer **scikit-learn** when the goal is prediction: preprocessing,
+  cross-validation, pipelines, model selection, ML workflows.
+- When useful, demonstrate both and explicitly explain the difference between
+  statistical inference and predictive modeling.
+
+### 3g. Prerequisite Check
+
+Before beginning the main analysis:
+- Identify concepts from prerequisites that are required.
+- Briefly refresh them (1–2 sentences + link to prior notebook).
+- Do NOT re-teach an entire previous notebook.
+- If a required concept has not been covered yet, explain the minimum
+  needed before proceeding.
+
+### 3h. Common Misconceptions
+
+Include a section identifying 3–7 common misconceptions for the topic.
+
+For each misconception:
+- ❌ Incorrect belief
+- ✅ Why it is incorrect
+- 💡 Correct understanding
+- 📌 Small example illustrating the difference
+
+---
+
+## Layer 4 — Analytical & Engineering Rules
+
+### 4a. Statistical Rigor
+
+- Explain why each method is appropriate before using it.
+- Identify and check assumptions where practical.
+- Explain violations and their consequences.
+- Distinguish statistical significance from practical significance.
+- Distinguish correlation from causation where relevant.
+- Do NOT claim a model is "good" based on a single metric.
+- Report uncertainty (confidence intervals, standard errors).
+- Do NOT fabricate or infer results that were not actually computed.
+
+### 4b. Data Leakage (mandatory for ML topics)
+
+For every predictive modeling notebook, explicitly evaluate:
+- What data leakage is.
+- Whether leakage exists in this analysis.
+- How it could artificially inflate performance.
+- How to prevent it.
+
+### 4c. Modeling Mindset (for ML notebooks)
+
+Explicitly distinguish and explain:
+- Business / statistical question
+- Prediction target
+- Features
+- Training vs validation vs test data
+- Model assumptions
+- Objective function
+- Evaluation metric
+- Generalization, overfitting, underfitting
+- Model limitations
+
+### 4d. Reproducibility
+
+- Set random seeds where randomness is involved.
+- Clearly identify train/validation/test splits.
+- Avoid hard-coded results.
+- Compute all reported statistics from the dataset — never manually enter
+  model outputs into markdown.
+- Use consistent variable names throughout.
+- Ensure cells execute sequentially top-to-bottom from a clean kernel.
+
+### 4e. Diagnostic / Assumption Checks
+
+When the topic involves model assumptions:
+1. Markdown cell: numbered list of all assumptions.
+2. Code cell: formal statistical tests → print ✅ PASS or ❌ FAIL for each.
+3. Code cell: grid of diagnostic plots.
+4. Markdown cell: plain-English explanation of each failure + recommended
+   remedies with formulas.
+
+---
+
+## Layer 5 — Output Structure & QA
+
+### Notebook Cell Sequence
+
+| Cell | Type | Content |
+|------|------|---------|
+| 0 | Code | Import `utils/styled_tables.py` |
+| 1 | Code | Library imports + pandas display options + `warnings.filterwarnings('ignore')` |
+| 2 | Code | Data loading via `Path.cwd().parent.parent` + `display_styled_table(df.head())` |
+| 3 | Markdown | Title → Overview → Learning Objectives → Why topic? → Why method? → Workflow |
+| 4…N | Markdown → Code → 📊 READOUT triples | One triple per analytical step |
+| N+1 | Markdown | Common Misconceptions |
+| N+2 | Code | Final printed summary report |
+| N+3 | Markdown | Knowledge Check questions |
+| N+4 | Markdown | Answer Key (collapsible or clearly separated) |
+
+### Markdown → Code → 📊 READOUT Triple Pattern
+
+Follow the datascience-notebook-template conventions but adapt the
+analytical sequence when the statistical method requires it. Do NOT force
+an inappropriate step structure simply to match another notebook.
+
+Every analytical step produces **three** cells:
+
+**Cell A — Markdown** (explains what's coming):
+```markdown
+## Step N: {{Step Title}}
+
+### What we're doing:
+- ...
+
+### Why it matters:
+- ...
+
+### Statistical / Mathematical Background:
+- Intuition, formulas (LaTeX), assumptions
+
+### What to expect:
+- What the output should look like if things are working correctly
+```
+
+**Cell B — Code** (computation + visualization):
+```python
+# Step N: {{Step Title}}
+print("=" * 80)
+print("TABLE N: {{TITLE IN UPPER CASE}}")
+print("=" * 80)
+
+# ... computation ...
+
+display_styled_table(result_df, title="...", header_color=TABLE_COLORS['green'])
+```
+
+**Cell C — 📊 READOUT Code** (actual values + interpretation):
+```python
+# 📊 READOUT: {{Step Title}}
+print("=" * 120)
+print("📊 READOUT: {{TITLE IN UPPER CASE}}")
+print("=" * 120)
+
+# Print actual computed values with plain-English interpretation
+print(f"\n  {{metric}}: {{actual_value}}")
+print(f"  ➡️  {{what it means for THIS dataset}}")
+print(f"\n  🔴 MOST NOTABLE: ...")
+print(f"\n  💡 WHAT THIS TELLS YOU: ...")
+```
+
+### Styled Table Color Scheme
+
+| Color | Use for |
+|-------|---------|
+| `TABLE_COLORS['green']` | Primary data tables, raw data |
+| `TABLE_COLORS['blue']` | Summary statistics, model fit metrics |
+| `TABLE_COLORS['orange']` | Candidate comparisons, side-by-side |
+| `TABLE_COLORS['red']` | Warnings, failed diagnostics |
+| `TABLE_COLORS['purple']` | Parameter estimates, coefficients |
+
+### Print Banner Style
+
+- Major sections: `"=" * 80` above and below, title in UPPER CASE
+- Sub-sections: `"-" * 80`, title in Title Case
+- Table titles: prefixed with `TABLE N:`
+
+### Visualization Standards
+
+- `fig, ax = plt.subplots(figsize=(W, H))` pattern
+- Title: `"Plot Title\n(Check: what to look for)"` with `fontweight='bold'`
+- All axes labeled with `fontweight='bold'`
+- `ax.grid(True, alpha=0.3)`
+- `plt.tight_layout()` before `plt.show()`
+- Group related diagnostic plots into grid layouts with `GridSpec`
+
+### Knowledge Check (end of notebook)
+
+End with 5–10 questions testing understanding. Mix of:
+- Conceptual questions
+- Interpretation questions (referencing actual results from this notebook)
+- "What would happen if…" questions
+- Mathematical / statistical reasoning
+- Code reasoning
+- Scenario-based questions
+
+Do NOT provide answers immediately. Place them in a clearly separated
+**Answer Key** section below.
+
+At least 2 questions must require interpreting actual results from this
+notebook, not just recalling definitions.
+
+### Companion Markdown Doc
+
+When enabled, generate `docs/{{number}}_{{slug}}.md` with:
+- Title + date
+- One-paragraph summary
+- Key results table (markdown)
+- Interpretation of each major finding
+- Limitations and next steps
+
+### Notebook Validation Checklist
+
+Before considering the notebook complete:
+
+1. All imports present and correct.
+2. All dataset paths resolve via `Path.cwd().parent.parent`.
+3. All variables referenced in code are defined.
+4. Cells execute sequentially from a clean kernel.
+5. All visualizations render.
+6. Statistical interpretations match actual outputs.
+7. No results are fabricated or hard-coded.
+8. Every concept listed in Key Concepts is covered.
+9. All LaTeX formulas render correctly.
+10. Final summary reflects the actual analysis.
+
+If notebook execution is available, execute from a clean kernel and fix
+all errors before completing the task.
+
+---
+
+## Step Naming Reference
+
+| Topic | Typical Steps |
+|-------|--------------|
+| Regression | Data Prep → Observations Summary → Class Levels → Model Dimensions → Variable Selection → Stop Details → Fit Criteria Viz → Final Model → ANOVA → Parameter Estimates → Diagnostics → Summary |
+| Logistic Reg | Data Prep → Class Balance → Feature Selection → Model Fitting → Odds Ratios → Confusion Matrix → ROC/AUC → Threshold Tuning → Goodness-of-Fit → Summary |
+| Hypothesis Testing | Data Prep → EDA → Test Selection → Assumptions Check → Test Execution → P-value Interpretation → Effect Size → Summary |
+| Classification | Data Prep → Class Distribution → Feature Engineering → Train/Test Split → Model Training → Evaluation Metrics → Model Comparison → Summary |
+| Clustering | Data Prep → Scaling → Elbow Method → Silhouette Analysis → Model Fitting → Cluster Profiling → Visualization → Summary |
+| Time Series | Data Prep → Decomposition → Stationarity Tests → ACF/PACF → Model Selection → Fitting → Forecast → Residual Diagnostics → Summary |
+| PCA | Data Prep → Scaling → Correlation Heatmap → Eigenvalues → Scree Plot → Loadings → Biplot → Variance Explained → Summary |
